@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "python converter bot"
+version = "0.1.0"
+description = ""
+authors = ["ivan <sumarokovj@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytelegrambotapi = "^4.14.0"
+requests = "^2.31.0"
+bs4 = "^0.0.1"
+sqlalchemy = "^2.0.22"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.12.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
