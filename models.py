@@ -1,10 +1,17 @@
+# Standard Library
 from typing import List
-from sqlalchemy import ForeignKey
-from sqlalchemy import String
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import relationship
+
+# Third Party Stuff
+from sqlalchemy import (
+    ForeignKey,
+    String,
+)
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 
 
 class Base(DeclarativeBase):
@@ -17,7 +24,8 @@ class Language(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(10), nullable=False)
 
-    users: Mapped[List["User"]] = relationship("User", backref="language")
+    users: Mapped[List["User"]] = relationship(back_populates="language")
+    phrases: Mapped[List["Phrase"]] = relationship(back_populates="language")
 
 
 class Direction(Base):
@@ -27,7 +35,7 @@ class Direction(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     phrase_code: Mapped[str] = mapped_column(String(50), nullable=False)
 
-    users: Mapped[List["User"]] = relationship("User", backref="direction")
+    users: Mapped[List["User"]] = relationship(back_populates="direction")
 
 
 class User(Base):
@@ -35,11 +43,13 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
-    language_id: Mapped[int] = mapped_column(ForeignKey("languages.id"), nullable=False)
-    direction_id: Mapped[int] = mapped_column(ForeignKey("directions.id"), nullable=False)
+    language_id: Mapped[int] = mapped_column(ForeignKey("languages.id"), nullable=True)
+    direction_id: Mapped[int] = mapped_column(
+        ForeignKey("directions.id"), nullable=True
+    )
 
-    direction: Mapped[Direction] = relationship("Direction", backref="users")
-    language: Mapped[Language] = relationship("Language", backref="users")
+    direction: Mapped[Direction] = relationship(back_populates="users")
+    language: Mapped[Language] = relationship(back_populates="users")
 
 
 # Модель фраз бота на разных языках
@@ -51,4 +61,4 @@ class Phrase(Base):
     phrase_code: Mapped[str] = mapped_column(String(50), nullable=False)
     text: Mapped[str] = mapped_column(String, nullable=True)
 
-    language: Mapped[Language] = relationship("Language", backref="phrases")
+    language: Mapped[Language] = relationship(back_populates="phrases")
