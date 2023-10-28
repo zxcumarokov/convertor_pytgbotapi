@@ -1,5 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from db_engine import engine
+from models import Base, Language, Phrase, User, Direction
 
 
 def update_exchange_rate() -> float | None:
@@ -17,3 +22,17 @@ def update_exchange_rate() -> float | None:
         return float(convert[0].text.replace(",", "."))
     else:
         return None
+
+
+def get_languages_keyboard() -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup()
+    with Session(engine) as session:
+        languages = session.scalars(select(Language)).all()
+        for language in languages:
+            keyboard.add(
+                InlineKeyboardButton(
+                    text=language.name,
+                    callback_data=f"set_language#{language.id}",
+                )
+            )
+    return keyboard

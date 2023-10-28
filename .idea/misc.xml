@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Poetry (python converter bot)" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (python converter bot)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (convertor_pytgbotapi)" project-jdk-type="Python SDK" />
 </project>
