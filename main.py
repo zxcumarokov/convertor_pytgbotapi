@@ -5,11 +5,11 @@ from telebot import types
 
 # My Stuff
 from bot_instance import bot
-from db_engine import engine
-from helper import update_exchange_rate
+from db.db_engine import engine
 from models import User
 from router import router
 
+from models import Phrase
 # inline_keyboard = types.InlineKeyboardMarkup()
 
 # Создание кнопок
@@ -44,20 +44,46 @@ def start(message: types.Message):
     router(user_id)
 
 
-@bot.message_handler(func=lambda m: True)
-def echo_all(message):
-    bot.reply_to(message, message.text)
-    bot.send_message(message.chat.id, message.text)
-
-
 @bot.callback_query_handler(func=lambda call: True)
-def callback_inline(call):
-    if call.data == "button1":
-        bot.send_message(call.message.chat.id, "Вы нажали на кнопку 1")
-    elif call.data == "button2":
-        bot.send_message(call.message.chat.id, "Вы нажали на кнопку 2")
-    else:
-        bot.send_message(call.message.chat.id, "Ошибка")
+def callback_inline(call: types.CallbackQuery):
+    """
+    Обработчик inline кнопок
+    """
+    user_id = call.from_user.id
+    with Session(engine) as session:
+        user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
+        messages = session.scalars(select(Phrase).where(Phrase.phrase_code == "SELECT_LANGUAGE")).all()
+        if not user:
+            bot.send_message(user_id, "Вы не зарегистрированы, введите /start")
+            return
+
+        if call.data.startswith("set_language#1"):
+            language_id = int(call.data.split("#")[1])
+            user.language_id = language_id
+            session.commit()
+            bot.send_message(user_id, messages[0].text)
+            router(user_id)
+        elif call.data.startswith("set_language#2"):
+            language_id = int(call.data.split("#")[1])
+            user.language_id = language_id
+            session.commit()
+            bot.send_message(user_id, messages[1].text)
+            router(user_id)
+
+
+
+
+
+
+        # elif call.data.startswith("set_direction"):
+        #     direction_id = int(call.data.split("#")[1])
+        #     user.direction_id = direction_id
+        #     session.commit()
+        #     bot.send_message(user_id, "Направление успешно выбрано")
+        #     router(user_id)
+        # elif call.data.startswith("convert"):
+        #     bot.send_message(user_id, "Введите сумму для конвертации")
+        #     bot.register_next_step_handler(call.message, convert)
 
 
 bot.infinity_polling()

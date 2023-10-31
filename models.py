@@ -4,6 +4,7 @@ from typing import List
 # Third Party Stuff
 from sqlalchemy import (
     ForeignKey,
+    UniqueConstraint,
     String,
 )
 from sqlalchemy.orm import (
@@ -26,6 +27,7 @@ class Language(Base):
 
     users: Mapped[List["User"]] = relationship(back_populates="language")
     phrases: Mapped[List["Phrase"]] = relationship(back_populates="language")
+
 
 
 class Direction(Base):
@@ -62,3 +64,5 @@ class Phrase(Base):
     text: Mapped[str] = mapped_column(String, nullable=True)
 
     language: Mapped[Language] = relationship(back_populates="phrases")
+
+    UniqueConstraint(language_id, phrase_code, name="unique_phrase")
