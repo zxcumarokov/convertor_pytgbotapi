@@ -10,6 +10,12 @@ from models import User
 from router import router
 
 from models import Phrase
+from models import Language
+from models import Direction
+
+
+
+
 # inline_keyboard = types.InlineKeyboardMarkup()
 
 # Создание кнопок
@@ -44,7 +50,7 @@ def start(message: types.Message):
     router(user_id)
 
 
-@bot.callback_query_handler(func=lambda call: True)
+@bot.callback_query_handler(func=lambda call: call.data.startswith("set_language"))
 def callback_inline(call: types.CallbackQuery):
     """
     Обработчик inline кнопок
@@ -70,9 +76,28 @@ def callback_inline(call: types.CallbackQuery):
             bot.send_message(user_id, messages[1].text)
             router(user_id)
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("set_direction"))
+def callback_dir(call: types.CallbackQuery):
+    user_id = call.from_user.id
+    with Session(engine) as session:
+        user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
+        messages = session.scalars(select(Phrase).where(Phrase.phrase_code == "SELECT_LANGUAGE")).all()
+        if not user:
+            bot.send_message(user_id, "Вы не зарегистрированы, введите /start")
+            return
 
-
-
+        if call.data.startswith("set_direction#1"):
+            direction_id = int(call.data.split("#")[1])
+            user.direction_id = direction_id
+            session.commit()
+            bot.send_message(user_id, messages[0].text)
+            router(user_id)
+        elif call.data.startswith("set_direction#2"):
+            direction_id = int(call.data.split("#")[1])
+            user.direction_id = direction_id
+            session.commit()
+            bot.send_message(user_id, messages[1].text)
+            router(user_id)
 
 
         # elif call.data.startswith("set_direction"):
