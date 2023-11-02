@@ -8,7 +8,7 @@ INSERT INTO "public"."phrases" ("language_id", "phrase_code", "text") VALUES
     (1, 'CHOOSE_DIRECTION', 'выберете направление перевода'), -- Добавьте кавычку здесь
     (2, 'CHOOSE_DIRECTION', 'select the direction of transfer'),
     (1,'ENTER_AMOUNT','Введите сумму для конвертации'),
-    (2,'ENTER_AMOUNT','Enter the amount to convert'),
+    (2,'ENTER_AMOUNT','Enter the amount to convert');
 
 ON CONFLICT ("phrase_code", "language_id") DO UPDATE
 SET "text" = excluded."text";
