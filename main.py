@@ -40,7 +40,7 @@ def start(message: types.Message):
 
         if not user:
             user = User(id=user_id, name=message.from_user.full_name, )
-            session.add(user)
+            session.add(user)            
             session.commit()
         clear_direction(user.id)
     router(user_id)

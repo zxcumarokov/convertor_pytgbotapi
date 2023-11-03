@@ -9,6 +9,7 @@ from db.db_engine import engine
 from models import Language
 from models import Phrase
 from models import User
+    
 
 
 def update_exchange_rate() -> float | None:
@@ -42,7 +43,7 @@ def get_languages_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_directions_keyboardru(user_id: int) -> InlineKeyboardMarkup:
+def get_directions_keyboard(user_id: int) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
     with Session(engine) as session:
         user = session.query(User).filter(User.id == user_id).one_or_none()
@@ -64,30 +65,30 @@ def get_directions_keyboardru(user_id: int) -> InlineKeyboardMarkup:
         return keyboard
 
 
-def get_directions_keyboarden(user_id: int) -> InlineKeyboardMarkup:
-    keyboard = InlineKeyboardMarkup()
-    with Session(engine) as session:
-        user = session.query(User).filter(User.id == user_id).one_or_none()
-        # direction = session.scalars(select(Direction)).all()
+# def get_directions_keyboarden(user_id: int) -> InlineKeyboardMarkup:
+#     keyboard = InlineKeyboardMarkup()
+#     with Session(engine) as session:
+#         user = session.query(User).filter(User.id == user_id).one_or_none()
+#         # direction = session.scalars(select(Direction)).all()
 
-        if user:
-            txmessage = session.query(Phrase).filter(
-                (Phrase.phrase_code == "RUB_TO_USD") |
-                (Phrase.phrase_code == "USD_TO_RUB"),
-                Phrase.language_id == user.language_id
-            ).all()
-            for direction in txmessage:
-                keyboard.add(
-                    InlineKeyboardButton(
-                        text=direction.text,
-                        callback_data=f"set_direction#{direction.id}",
-                    )
-                )
-        return keyboard
+#         if user:
+#             txmessage = session.query(Phrase).filter(
+#                 (Phrase.phrase_code == "RUB_TO_USD") |
+#                 (Phrase.phrase_code == "USD_TO_RUB"),
+#                 Phrase.language_id == user.language_id
+#             ).all()
+#             for direction in txmessage:
+#                 keyboard.add(
+#                     InlineKeyboardButton(
+#                         text=direction.text,
+#                         callback_data=f"set_direction#{direction.id}",
+#                     )
+#                 )
+#         return keyboard
 
 
-def convert():
-    pass
+# def convert():
+#     pass
 
 
 # @bot.callback_query_handler(func=lambda call: True)
