@@ -14,6 +14,9 @@ from models import User
 from router import router
 
 
+from typing import Tuple
+
+
 # inline_keyboard = types.InlineKeyboardMarkup()
 
 # Создание кнопок
@@ -24,6 +27,13 @@ from router import router
 # inline_keyboard.add(button1, button2)
 
 # Отправка сообщения с inline клавиатурой
+
+# Словарь для сопоставления callback данных с действиями
+direction_actions = {
+    "set_direction#1": {"phrase_code": "ENTER_AMOUNT", "text_index": 0},
+    "set_direction#2": {"phrase_code": "ENTER_AMOUNT", "text_index": 1},
+    # Добавьте другие действия здесь
+}
 
 
 @bot.message_handler(commands=["start", "help"])
@@ -75,32 +85,33 @@ def callback_dir(call: types.CallbackQuery):
 
     with Session(engine) as session:
         user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
-        messages = session.scalars(select(Phrase).where(Phrase.phrase_code == "ENTER_AMOUNT")).all()
 
         if not user:
             bot.send_message(user_id, "Вы не зарегистрированы, введите /start")
             return
 
-        if call.data.startswith("set_direction#1"):
-            print("ХУЙЙЙЙЙ ЗАЛУУУУПА")
+        direction_data = direction_actions.get(call.data)
+
+        if direction_data:
             direction_id = int(call.data.split("#")[1])
             user.direction_id = direction_id
             session.commit()
-            bot.send_message(user_id, messages[0].text)
-            router(user_id)
-        elif call.data.startswith("set_direction#2"):
-            print("ХУЙЙЙЙЙ ЗАЛУУУУПА")
-            direction_id = int(call.data.split("#")[1])
-            user.direction_id = direction_id
-            session.commit()
-            bot.send_message(user_id, messages[1].text)
+
+            phrase_code = direction_data["phrase_code"]
+            text_index = direction_data["text_index"]
+            message = session.scalars(select(Phrase).where(Phrase.phrase_code == phrase_code)).all()
+            if message and len(message) > text_index:
+                bot.send_message(user_id, message[text_index].text)
+            else:
+                bot.send_message(user_id, "Нет подходящего сообщения")
+
             router(user_id)
 
         # elif call.data.startswith("set_direction"):  #     direction_id = int(call.data.split("#")[1])  #     user.direction_id = direction_id  #     session.commit()  #     bot.send_message(user_id, "Направление успешно выбрано")  #     router(user_id)  # elif call.data.startswith("convert"):  #     bot.send_message(user_id, "Введите сумму для конвертации")  #     bot.register_next_step_handler(call.message, convert)
 
 
 def amoun_inputed(message: types.Message):
-    text = message.text
+    text = message.text.replace(',', '.')  # Заменяем запятую на точку, если она есть
     amount = Decimal(text)
     rate = update_exchange_rate()
     user_id = message.from_user.id

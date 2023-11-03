@@ -13,12 +13,11 @@ from models import User
 
 # from telebot import types
 
-from helper import get_directions_keyboardru
-from helper import get_directions_keyboarden
 from helper import update_exchange_rate
 from telebot import types
 from actions import choose_language
 from actions import get_amount
+from actions import choose_direction
 
 
 def router(user_id: int):
@@ -35,19 +34,7 @@ def router(user_id: int):
             return
 
         if not user.direction_id:
-            msgdirection = session.scalars(select(Phrase).where(Phrase.phrase_code == "CHOOSE_DIRECTION")).all()
-            if user.language_id == 1:
-                bot.send_message(
-                    user_id,
-                    text=msgdirection[0].text,
-                    reply_markup=get_directions_keyboardru(user_id = user_id),
-                )
-            elif user.language_id == 2:
-                bot.send_message(
-                    user_id,
-                    text=msgdirection[1].text,
-                    reply_markup=get_directions_keyboarden(user_id = user_id),
-                )
+            choose_direction(user.id,user.language_id)
             return
 
         get_amount(user_id)

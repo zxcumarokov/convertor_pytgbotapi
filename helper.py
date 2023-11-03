@@ -10,7 +10,7 @@ from models import Language
 from models import Phrase
 from models import User
     
-
+from typing import Tuple
 
 def update_exchange_rate() -> float | None:
     url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
@@ -43,26 +43,23 @@ def get_languages_keyboard() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def get_directions_keyboard(user_id: int) -> InlineKeyboardMarkup:
+def get_directions_keyboard(language_id: int):
     keyboard = InlineKeyboardMarkup()
-    with Session(engine) as session:
-        user = session.query(User).filter(User.id == user_id).one_or_none()
-        # direction = session.scalars(select(Direction)).all()
 
-        if user.language_id == 1:
-            txmessage = session.query(Phrase).filter(
-                (Phrase.phrase_code == "RUB_TO_USD") |
-                (Phrase.phrase_code == "USD_TO_RUB"),
-                Phrase.language_id == user.language_id
-            ).all()
-            for direction in txmessage:
-                keyboard.add(
-                    InlineKeyboardButton(
-                        text=direction.text,
-                        callback_data=f"set_direction#{direction.id}",
-                    )
-                )
-        return keyboard
+    with Session(engine) as session:
+        phrases = session.query(Phrase).filter(
+            (Phrase.phrase_code == "RUB_TO_USD") | (Phrase.phrase_code == "USD_TO_RUB"),
+            Phrase.language_id == language_id
+        ).all()
+
+
+        for direction in phrases:
+            button_text = direction.text
+            callback_data = f"set_direction#{direction.id}"
+
+            keyboard.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
+
+    return keyboard
 
 
 # def get_directions_keyboarden(user_id: int) -> InlineKeyboardMarkup:
