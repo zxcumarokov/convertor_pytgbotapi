@@ -7,6 +7,7 @@ def choose_language(user_id: int):
 
 
 def get_amount(user_id: int,language_id:int):
+    print("get_amount")
     message = bot.send_message(text=get_phrase('ENTER_AMOUNT', language_id), chat_id=user_id, )
     from main import amoun_inputed
     bot.register_next_step_handler(message=message, callback=amoun_inputed, )

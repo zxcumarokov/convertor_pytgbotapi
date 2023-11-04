@@ -98,14 +98,6 @@ def callback_dir(call: types.CallbackQuery):
             user.direction_id = direction_id
             session.commit()
 
-            phrase_code = direction_data["phrase_code"]
-            text_index = direction_data["text_index"]
-            message = session.scalars(select(Phrase).where(Phrase.phrase_code == phrase_code)).all()
-            if message and len(message) > text_index:
-                bot.send_message(user_id, message[text_index].text)
-            else:
-                bot.send_message(user_id, "Нет подходящего сообщения")
-
         router(user_id)
 
         # elif call.data.startswith("set_direction"):  #     direction_id = int(call.data.split("#")[1])  #     user.direction_id = direction_id  #     session.commit()  #     bot.send_message(user_id, "Направление успешно выбрано")  #     router(user_id)  # elif call.data.startswith("convert"):  #     bot.send_message(user_id, "Введите сумму для конвертации")  #     bot.register_next_step_handler(call.message, convert)
