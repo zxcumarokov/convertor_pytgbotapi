@@ -11,6 +11,7 @@ from db.db_engine import engine
 from helper import (clear_direction, update_exchange_rate, get_phrase, )
 from models import Phrase
 from models import User
+
 from router import router
 
 
@@ -50,7 +51,7 @@ def start(message: types.Message):
 
         if not user:
             user = User(id=user_id, name=message.from_user.full_name, )
-            session.add(user)            
+            session.add(user)
             session.commit()
         clear_direction(user.id)
     router(user_id)
@@ -105,7 +106,7 @@ def callback_dir(call: types.CallbackQuery):
             else:
                 bot.send_message(user_id, "Нет подходящего сообщения")
 
-            router(user_id)
+        router(user_id)
 
         # elif call.data.startswith("set_direction"):  #     direction_id = int(call.data.split("#")[1])  #     user.direction_id = direction_id  #     session.commit()  #     bot.send_message(user_id, "Направление успешно выбрано")  #     router(user_id)  # elif call.data.startswith("convert"):  #     bot.send_message(user_id, "Введите сумму для конвертации")  #     bot.register_next_step_handler(call.message, convert)
 

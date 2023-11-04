@@ -37,5 +37,5 @@ def router(user_id: int):
             choose_direction(user.id,user.language_id)
             return
 
-        get_amount(user_id)
+        get_amount(user_id, user.language_id)
         return

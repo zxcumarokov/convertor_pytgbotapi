@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import aliased
+from sqlalchemy import or_
+from sqlalchemy import select
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # My Stuff
@@ -9,8 +12,10 @@ from db.db_engine import engine
 from models import Language
 from models import Phrase
 from models import User
+from models import Direction
     
 from typing import Tuple
+
 
 def update_exchange_rate() -> float | None:
     url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
@@ -47,40 +52,19 @@ def get_directions_keyboard(language_id: int):
     keyboard = InlineKeyboardMarkup()
 
     with Session(engine) as session:
-        phrases = session.query(Phrase).filter(
-            (Phrase.phrase_code == "RUB_TO_USD") | (Phrase.phrase_code == "USD_TO_RUB"),
-            Phrase.language_id == language_id
-        ).all()
+        # Получаем все направления (directions)
+        directions = session.scalars(select(Direction)).all()
 
+        for direction in directions:
+            # Получаем соответствующую фразу для данного направления и языка
+            button_text = get_phrase(direction.phrase_code, language_id)
 
-        for direction in phrases:
-            button_text = direction.text
-            callback_data = f"set_direction#{direction.id}"
-
-            keyboard.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
+            if button_text:
+                callback_data = f"set_direction#{direction.id}"
+                keyboard.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
 
     return keyboard
 
-
-# def get_directions_keyboarden(user_id: int) -> InlineKeyboardMarkup:
-#     keyboard = InlineKeyboardMarkup()
-#     with Session(engine) as session:
-#         user = session.query(User).filter(User.id == user_id).one_or_none()
-#         # direction = session.scalars(select(Direction)).all()
-
-#         if user:
-#             txmessage = session.query(Phrase).filter(
-#                 (Phrase.phrase_code == "RUB_TO_USD") |
-#                 (Phrase.phrase_code == "USD_TO_RUB"),
-#                 Phrase.language_id == user.language_id
-#             ).all()
-#             for direction in txmessage:
-#                 keyboard.add(
-#                     InlineKeyboardButton(
-#                         text=direction.text,
-#                         callback_data=f"set_direction#{direction.id}",
-#                     )
-#                 )
 #         return keyboard
 
 
