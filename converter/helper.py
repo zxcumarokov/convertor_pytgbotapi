@@ -1,3 +1,7 @@
+# Standard Library
+import logging
+from decimal import Decimal
+
 # Third Party Stuff
 import requests
 from bs4 import BeautifulSoup
@@ -18,7 +22,7 @@ from db.models import (
 )
 
 
-def update_exchange_rate() -> float | None:
+def update_exchange_rate() -> Decimal | None:
     url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -30,7 +34,7 @@ def update_exchange_rate() -> float | None:
     convert = soup.findAll("div", {"class": "YMlKec fxKbKc"})
 
     if convert:
-        return float(convert[0].text.replace(",", "."))
+        return Decimal(convert[0].text.replace(",", "."))
     else:
         return None
 
@@ -92,6 +96,7 @@ def clear_direction(user_id: int):
     with Session(engine) as session:
         user = session.get(User, user_id)
         if not user:
+            logging.warning(f"User {user_id} not found in database")
             return
         user.direction_id = None
         session.commit()
@@ -105,11 +110,11 @@ def get_phrase(key: str, language_id: int) -> str:
             .where(Phrase.language_id == language_id)
         )
         if not phrase:
-            raise ValueError(f"Phrase {key} not found in database")
+            return key
         return phrase
 
 
-def get_user_currency(user_id: int) -> str:
+def get_user_currency(user_id: int) -> int:
     with Session(engine) as session:
         user = session.get(User, user_id)
         if not user:

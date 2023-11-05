@@ -1,3 +1,6 @@
+# Standard Library
+import logging
+
 # Third Party Stuff
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -103,5 +106,8 @@ def callback_dir(call: types.CallbackQuery):
     bot.delete_message(chat_id=user_id, message_id=call.message.message_id)
 
 
-bot.infinity_polling()
-
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    bot.infinity_polling()
