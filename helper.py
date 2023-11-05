@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import aliased
 from sqlalchemy import or_
 from sqlalchemy import select
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup,ReplyKeyboardRemove
 
 # My Stuff
 from db.db_engine import engine
@@ -103,3 +103,10 @@ def get_phrase(key: str, language_id: int) -> str:
         if not phrase:
             raise ValueError(f"Phrase {key} not found in database")
         return phrase
+
+def get_user_currency(user_id: int) -> str:
+    with Session(engine) as session:
+        user = session.get(User, user_id)
+        if not user:
+            raise ValueError(f"User {user_id} not found in database")
+        return user.direction_id

@@ -1,18 +1,100 @@
 from bot_instance import bot
-from helper import (get_languages_keyboard, get_phrase, get_directions_keyboard, )
+from helper import (
+    get_languages_keyboard,
+    get_phrase,
+    get_directions_keyboard,
+)
+from helper import get_user_currency
+from models import User
+from db.db_engine import engine
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+from telebot import types
+from helper import update_exchange_rate
+from decimal import Decimal
 
+from decimal import Decimal, InvalidOperation, ROUND_DOWN
+from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 def choose_language(user_id: int):
-    bot.send_message(user_id, text="choose language:", reply_markup=get_languages_keyboard(), )
+    bot.send_message(
+        user_id,
+        text="choose language:",
+        reply_markup=get_languages_keyboard(),
+    )
 
 
-def get_amount(user_id: int,language_id:int):
-    print("get_amount")
-    message = bot.send_message(text=get_phrase('ENTER_AMOUNT', language_id), chat_id=user_id, )
-    from main import amoun_inputed
-    bot.register_next_step_handler(message=message, callback=amoun_inputed, )
-
+def get_amount(user_id: int, language_id: int):
+    if language_id == 2:
+        user_currency = get_user_currency(user_id)
+        if user_currency == 1:
+            currency_text = "USD"
+        elif user_currency == 2:
+            currency_text = "RUB"
+        else:
+            currency_text = ""
+        message_text = get_phrase("ENTER_AMOUNT", language_id) + " in " + currency_text
+        message = bot.send_message(text=message_text, chat_id=user_id)
+        bot.register_next_step_handler(message=message, callback=amoun_inputed)
+    else:
+        user_currency = get_user_currency(user_id)
+        if user_currency == 1:
+            currency_text = "Долларах"
+        elif user_currency == 2:
+            currency_text = "Рублях"
+        else:
+            currency_text = ""
+        message_text = get_phrase("ENTER_AMOUNT", language_id) + " в " + currency_text
+        message = bot.send_message(text=message_text, chat_id=user_id)
+        bot.register_next_step_handler(message=message, callback=amoun_inputed)
 
 
 def choose_direction(user_id: int, language_id: int):
-    bot.send_message(user_id, text=get_phrase("CHOOSE_DIRECTION", language_id), reply_markup=get_directions_keyboard(language_id), )
+    bot.send_message(
+        user_id,
+        text=get_phrase("CHOOSE_DIRECTION", language_id),
+        reply_markup=get_directions_keyboard(language_id),
+    )
+
+
+from decimal import Decimal
+
+from decimal import Decimal, ROUND_DOWN
+
+
+def amoun_inputed(message: types.Message):
+    text = message.text.replace(",", ".")  # Заменяем запятую на точку, если она есть
+    user_id = message.from_user.id
+    with Session(engine) as session:
+        user = session.get(User, user_id)
+        if not user:
+            raise ValueError("User not found")
+        language_id = user.language_id
+        try:
+            amount = Decimal(text)
+        except InvalidOperation:
+            error_text = get_phrase("INVALID_NUMBER", language_id)
+            bot.send_message(message.chat.id, error_text)
+            get_amount(message.chat.id, language_id)
+            return
+
+    rate = Decimal(update_exchange_rate())  # Преобразуем rate в Decimal
+    direction_id = user.direction_id  # Используем direction_id из записи пользователя
+    match direction_id:
+        # usd-rub
+        case 1:
+            result = (amount * rate).quantize(Decimal("0.00"), rounding=ROUND_DOWN)
+            currency: str = get_phrase("RESULT_RUB", language_id)
+        case 2:
+            result = (amount / rate).quantize(Decimal("0.00"), rounding=ROUND_DOWN)
+            currency: str = get_phrase("RESULT_USD", language_id)
+        case _:
+            raise ValueError(f"Direction {direction_id} not found")
+
+    final_phrase: str = get_phrase("FINAL_PHRASE", language_id)
+    bot.send_message(
+        text=f"{final_phrase}\n{result} {currency}",
+        chat_id=user.id,
+    )
+    choose_direction(user_id, language_id)

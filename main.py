@@ -5,6 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from telebot import types
 
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup,ReplyKeyboardRemove
+
+
 # My Stuff
 from bot_instance import bot
 from db.db_engine import engine
@@ -37,7 +40,7 @@ direction_actions = {
 }
 
 
-@bot.message_handler(commands=["start", "help"])
+@bot.message_handler(commands=["start", "info"])
 def start(message: types.Message):
     """
     Команда /start
@@ -99,33 +102,11 @@ def callback_dir(call: types.CallbackQuery):
             session.commit()
 
         router(user_id)
+     # Remove the keyboard
+    bot.edit_message_reply_markup(chat_id=user_id, message_id=call.message.message_id, reply_markup=None)
 
-        # elif call.data.startswith("set_direction"):  #     direction_id = int(call.data.split("#")[1])  #     user.direction_id = direction_id  #     session.commit()  #     bot.send_message(user_id, "Направление успешно выбрано")  #     router(user_id)  # elif call.data.startswith("convert"):  #     bot.send_message(user_id, "Введите сумму для конвертации")  #     bot.register_next_step_handler(call.message, convert)
-
-
-def amoun_inputed(message: types.Message):
-    text = message.text.replace(',', '.')  # Заменяем запятую на точку, если она есть
-    amount = Decimal(text)
-    rate = update_exchange_rate()
-    user_id = message.from_user.id
-    with Session(engine) as session:
-        user = session.get(User, user_id)
-        if not user_id:
-            raise ValueError("User not found")
-        direction_id = user_id
-    match direction_id:
-        # usd-rub
-        case 1:
-            result = amount * rate
-            currency: str = get_phrase('result_rub', user.language_id)
-        case 2:
-            result = amount / rate
-            currency: str = get_phrase('result_usd', user.language_id)
-        case _:
-            raise ValueError(f"Direction {direction_id} not found")
-
-    final_phrase: str = get_phrase('final_phrase', user.language_id)
-    bot.send_message(text=f"{final_phrase}\n{result} {currency}", chat_id=user.id, )
+    # Delete the message
+    bot.delete_message(chat_id=user_id, message_id=call.message.message_id)
 
 
 bot.infinity_polling()

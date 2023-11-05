@@ -1,8 +1,10 @@
 from db.db_engine import engine
+
 from sqlalchemy.orm import Session
 from sqlalchemy import select, text
 import os
 import logging
+
 
 logging.basicConfig(level=logging.INFO)
 # TABLES = [
