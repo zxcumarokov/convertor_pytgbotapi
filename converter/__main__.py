@@ -1,25 +1,14 @@
 # Third Party Stuff
-from decimal import Decimal
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from telebot import types
 
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup,ReplyKeyboardRemove
-
-
 # My Stuff
-from bot_instance import bot
+from converter.bot_instance import bot
+from converter.helper import clear_direction
+from converter.router import router
 from db.db_engine import engine
-from helper import (clear_direction, update_exchange_rate, get_phrase, )
-from models import Phrase
-from models import User
-
-from router import router
-
-
-from typing import Tuple
-
+from db.models import User
 
 # inline_keyboard = types.InlineKeyboardMarkup()
 
@@ -53,7 +42,10 @@ def start(message: types.Message):
         user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
 
         if not user:
-            user = User(id=user_id, name=message.from_user.full_name, )
+            user = User(
+                id=user_id,
+                name=message.from_user.full_name,
+            )
             session.add(user)
             session.commit()
         clear_direction(user.id)
@@ -102,11 +94,14 @@ def callback_dir(call: types.CallbackQuery):
             session.commit()
 
         router(user_id)
-     # Remove the keyboard
-    bot.edit_message_reply_markup(chat_id=user_id, message_id=call.message.message_id, reply_markup=None)
+    # Remove the keyboard
+    bot.edit_message_reply_markup(
+        chat_id=user_id, message_id=call.message.message_id, reply_markup=None
+    )
 
     # Delete the message
     bot.delete_message(chat_id=user_id, message_id=call.message.message_id)
 
 
 bot.infinity_polling()
+

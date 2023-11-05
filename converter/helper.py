@@ -1,27 +1,28 @@
+# Third Party Stuff
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import aliased
-from sqlalchemy import or_
-from sqlalchemy import select
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup,ReplyKeyboardRemove
+from telebot.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 
 # My Stuff
 from db.db_engine import engine
-from models import Language
-from models import Phrase
-from models import User
-from models import Direction
-    
-from typing import Tuple
+from db.models import (
+    Direction,
+    Language,
+    Phrase,
+    User,
+)
 
 
 def update_exchange_rate() -> float | None:
     url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
     headers = {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-                      "Chrome/117.0.0.0 Safari/537.36"
+        "Chrome/117.0.0.0 Safari/537.36"
         # noqa E501
     }
     full_page = requests.get(url, headers=headers)
@@ -61,9 +62,12 @@ def get_directions_keyboard(language_id: int):
 
             if button_text:
                 callback_data = f"set_direction#{direction.id}"
-                keyboard.add(InlineKeyboardButton(text=button_text, callback_data=callback_data))
+                keyboard.add(
+                    InlineKeyboardButton(text=button_text, callback_data=callback_data)
+                )
 
     return keyboard
+
 
 #         return keyboard
 
@@ -103,6 +107,7 @@ def get_phrase(key: str, language_id: int) -> str:
         if not phrase:
             raise ValueError(f"Phrase {key} not found in database")
         return phrase
+
 
 def get_user_currency(user_id: int) -> str:
     with Session(engine) as session:

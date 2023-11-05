@@ -1,10 +1,13 @@
-from db.db_engine import engine
-
-from sqlalchemy.orm import Session
-from sqlalchemy import select, text
-import os
+# Standard Library
 import logging
+import os
 
+# Third Party Stuff
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+# My Stuff
+from db.db_engine import engine
 
 logging.basicConfig(level=logging.INFO)
 # TABLES = [
@@ -15,9 +18,11 @@ FOLDERS = [
     "db/scripts/",
 ]
 
+
 def main():
+    print("update database")
     with Session(engine) as session:
-        #update db from files in FOLDERS
+        # update db from files in FOLDERS
         for folder in FOLDERS:
             # get all files in folder
             files = os.listdir(folder)

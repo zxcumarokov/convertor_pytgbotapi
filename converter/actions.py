@@ -1,21 +1,26 @@
-from bot_instance import bot
-from helper import (
-    get_languages_keyboard,
-    get_phrase,
-    get_directions_keyboard,
+# Standard Library
+from decimal import (
+    ROUND_DOWN,
+    Decimal,
+    InvalidOperation,
 )
-from helper import get_user_currency
-from models import User
-from db.db_engine import engine
-from sqlalchemy import select
+
+# Third Party Stuff
 from sqlalchemy.orm import Session
 from telebot import types
-from helper import update_exchange_rate
-from decimal import Decimal
 
-from decimal import Decimal, InvalidOperation, ROUND_DOWN
-from sqlalchemy.orm import Session
-from sqlalchemy import select
+# My Stuff
+from converter.bot_instance import bot
+from converter.helper import (
+    get_directions_keyboard,
+    get_languages_keyboard,
+    get_phrase,
+    get_user_currency,
+    update_exchange_rate,
+)
+from db.db_engine import engine
+from db.models import User
+
 
 def choose_language(user_id: int):
     bot.send_message(
@@ -56,11 +61,6 @@ def choose_direction(user_id: int, language_id: int):
         text=get_phrase("CHOOSE_DIRECTION", language_id),
         reply_markup=get_directions_keyboard(language_id),
     )
-
-
-from decimal import Decimal
-
-from decimal import Decimal, ROUND_DOWN
 
 
 def amoun_inputed(message: types.Message):
