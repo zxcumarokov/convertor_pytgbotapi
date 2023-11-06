@@ -33,28 +33,28 @@ def choose_language(user_id: int):
 
 
 def get_amount(user_id: int, language_id: int):
-    with Session(engine) as session:
-        user = session.get(User, user_id)
-        if not user:
-            logging.warning(f"User {user_id} not found in database")
-            return
-        match user.direction_id:
-            case DirectionsEnum.USD_RUB:
-                currency = get_phrase("USD", language_id)
-            case DirectionsEnum.RUB_USD:
-                currency = get_phrase("RUB", language_id)
-            case _:
-                raise ValueError(f"Direction {user.direction_id} not found")
-
-    message_text = f"{get_phrase('ENTER_AMOUNT', language_id)} ({get_phrase(currency, language_id)})"
-    message = bot.send_message(
-        text=message_text,
-        chat_id=user_id,
-    )
-    bot.register_next_step_handler(
-        message=message,
-        callback=amoun_inputed,
-    )
+    if language_id == 2:
+        user_currency = get_user_currency(user_id)
+        if user_currency == 1:
+            currency_text = "USD"
+        elif user_currency == 2:
+            currency_text = "RUB"
+        else:
+            currency_text = ""
+        message_text = get_phrase("ENTER_AMOUNT", language_id) + " in " + currency_text
+        message = bot.send_message(text=message_text, chat_id=user_id)
+        bot.register_next_step_handler(message=message, callback=amoun_inputed)
+    else:
+        user_currency = get_user_currency(user_id)
+        if user_currency == 1:
+            currency_text = "Долларах"
+        elif user_currency == 2:
+            currency_text = "Рублях"
+        else:
+            currency_text = ""
+        message_text = get_phrase("ENTER_AMOUNT", language_id) + " в " + currency_text
+        message = bot.send_message(text=message_text, chat_id=user_id)
+        bot.register_next_step_handler(message=message, callback=amoun_inputed)
 
 
 def choose_direction(user_id: int, language_id: int):

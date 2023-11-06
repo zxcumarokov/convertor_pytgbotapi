@@ -10,5 +10,9 @@
 
 INSERT INTO "public"."directions" ("id", "name", "phrase_code") VALUES
 (1, 'usd-rub', 'USD_TO_RUB'),
-(2, 'rub-usd', 'RUB_TO_USD');
+(2, 'rub-usd', 'RUB_TO_USD')
 
+ON CONFLICT ("id") DO
+UPDATE
+SET
+  "name" = excluded."name"; 

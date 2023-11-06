@@ -9,13 +9,12 @@ from sqlalchemy import (
 
 # My Stuff
 from alembic import context
-from config import DB_URL
-from models import Base
+from core.config import DB_URL
+from db.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
-config = context.config
-
+config = context.config  # type: ignore
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
