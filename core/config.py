@@ -1,15 +1,13 @@
 # Third Party Stuff
 from sqlalchemy.engine import URL
 
-TOKEN = "6862002582:AAHKSgSgceR8LXEMV3cMU7G6cQ-IbOOpp9U"
-# Вручную задаем данные из вашей ссылки
+TOKEN = "5991863328:AAHf0Fyz3rtMR8851RF3xfyqdzIYNNDbVnM"# Замените следующие переменные вашими данными# Замените следующие переменные вашими данными
 drivername = "postgresql"
 username = "postgres"
 password = "postgrespw"
 host = "localhost"
-port = 32769
-database = "telegrambotapiconverter"
-
+port = 5433  # Это порт, который вы пробросили с хоста на контейнер
+database = "convtgbot"
 # Создаем объект URL
 DB_URL = URL.create(
     drivername=drivername,
@@ -19,5 +17,3 @@ DB_URL = URL.create(
     port=port,
     password=password,
 )
-
-
