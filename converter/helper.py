@@ -12,6 +12,10 @@ from telebot.types import (
     InlineKeyboardMarkup,
 )
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # My Stuff
 from db.db_engine import engine
 from db.models import (
@@ -23,19 +27,25 @@ from db.models import (
 
 
 def update_exchange_rate() -> Decimal | None:
-    url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/117.0.0.0 Safari/537.36"
-        # noqa E501
-    }
-    full_page = requests.get(url, headers=headers)
-    soup = BeautifulSoup(full_page.content, "html.parser")
-    convert = soup.findAll("div", {"class": "YMlKec fxKbKc"})
+    try:
+        url = "https://www.google.com/finance/quote/USD-RUB?sa=X&ved=2ahUKEwjoxe30pcCBAxW3AhAIHfMmAxYQmY0JegQIDRAr"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/117.0.0.0 Safari/537.36"
+        }
+        full_page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(full_page.content, "html.parser")
+        convert = soup.findAll("div", {"class": "YMlKec fxKbKc"})
 
-    if convert:
-        return Decimal(convert[0].text.replace(",", "."))
-    else:
+        if convert:
+            exchange_rate = Decimal(convert[0].text.replace(",", "."))
+            logger.info(f"Exchange rate updated: {exchange_rate}")
+            return exchange_rate
+        else:
+            logger.warning("Failed to retrieve exchange rate.")
+            return None
+    except Exception as e:
+        logger.error(f"Error updating exchange rate: {e}")
         return None
 
 
@@ -57,11 +67,9 @@ def get_directions_keyboard(language_id: int):
     keyboard = InlineKeyboardMarkup()
 
     with Session(engine) as session:
-        # Получаем все направления (directions)
         directions = session.scalars(select(Direction)).all()
 
         for direction in directions:
-            # Получаем соответствующую фразу для данного направления и языка
             button_text = get_phrase(direction.phrase_code, language_id)
 
             if button_text:
@@ -73,30 +81,11 @@ def get_directions_keyboard(language_id: int):
     return keyboard
 
 
-#         return keyboard
-
-
-# def convert():
-#     pass
-
-
-# @bot.callback_query_handler(func=lambda call: True)
-# def callback_inline(call: types.CallbackQuery):
-#     user_id = call.from_user.id
-#     language_id = int(call.data.split("#")[1])
-#     with Session(engine) as session:
-#         messages = session.scalars(select(Phrase).where(Phrase.phrase_code == "CHOOSE_DIRECTION")).all()
-#         if call.data == "set_direction#1":
-#             bot.send_message(user_id, messages[0], reply_markup=get_directions_keyboard(language_id))
-#         else:
-#             bot.send_message(user_id, messages[1], reply_markup=get_directions_keyboard(language_id))
-
-
 def clear_direction(user_id: int):
     with Session(engine) as session:
         user = session.get(User, user_id)
         if not user:
-            logging.warning(f"User {user_id} not found in database")
+            logger.warning(f"User {user_id} not found in database")
             return
         user.direction_id = None
         session.commit()
@@ -109,9 +98,17 @@ def get_phrase(key: str, language_id: int) -> str:
             .where(Phrase.phrase_code == key)
             .where(Phrase.language_id == language_id)
         )
-        if not phrase:
-            return key
-        return phrase
+        if phrase:
+            return phrase
+        else:
+            new_phrase = Phrase(
+                key=key,
+                language_id=1,
+                value=key.replace("_", " ").capitalize(),
+            )
+            session.add(new_phrase)
+            session.commit()
+            return new_phrase
 
 
 def get_user_currency(user_id: int) -> int:

@@ -6,6 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from telebot import types
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # My Stuff
 from converter.bot_instance import bot
 from converter.helper import clear_direction
@@ -13,18 +17,6 @@ from converter.router import router
 from db.db_engine import engine
 from db.models import User
 
-# inline_keyboard = types.InlineKeyboardMarkup()
-
-# Создание кнопок
-# button1 = types.InlineKeyboardButton("Кнопка 1", callback_data="button1")
-# button2 = types.InlineKeyboardButton("Кнопка 2", callback_data="button2")
-
-# Добавление кнопок в клавиатуру
-# inline_keyboard.add(button1, button2)
-
-# Отправка сообщения с inline клавиатурой
-
-# Словарь для сопоставления callback данных с действиями
 direction_actions = {
     "set_direction#1": {"phrase_code": "ENTER_AMOUNT", "text_index": 0},
     "set_direction#2": {"phrase_code": "ENTER_AMOUNT", "text_index": 1},
@@ -34,12 +26,6 @@ direction_actions = {
 
 @bot.message_handler(commands=["start", "info"])
 def start(message: types.Message):
-    """
-    Команда /start
-    проверяет наличие пользователя в базе данных
-    если пользователя нет, то добавляет его в базу данных
-    в конце отправляет в роутер
-    """
     user_id = message.from_user.id
     with Session(engine) as session:
         user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
@@ -52,14 +38,12 @@ def start(message: types.Message):
             session.add(user)
             session.commit()
         clear_direction(user.id)
+    logger.info(f"User {user_id} started the conversation.")
     router(user_id)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("set_language"))
 def callback_inline(call: types.CallbackQuery):
-    """
-    Обработчик inline кнопок
-    """
     user_id = call.from_user.id
     with Session(engine) as session:
         user = session.scalars(select(User).where(User.id == user_id)).one_or_none()
@@ -71,10 +55,12 @@ def callback_inline(call: types.CallbackQuery):
             language_id = int(call.data.split("#")[1])
             user.language_id = language_id
             session.commit()
+            logger.info(f"User {user_id} set language to {language_id}")
         elif call.data.startswith("set_language#2"):
             language_id = int(call.data.split("#")[1])
             user.language_id = language_id
             session.commit()
+            logger.info(f"User {user_id} set language to {language_id}")
         router(user_id)
 
 
@@ -95,19 +81,15 @@ def callback_dir(call: types.CallbackQuery):
             direction_id = int(call.data.split("#")[1])
             user.direction_id = direction_id
             session.commit()
+            logger.info(f"User {user_id} set direction to {direction_id}")
 
         router(user_id)
-    # Remove the keyboard
     bot.edit_message_reply_markup(
         chat_id=user_id, message_id=call.message.message_id, reply_markup=None
     )
-
-    # Delete the message
     bot.delete_message(chat_id=user_id, message_id=call.message.message_id)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-    )
+    logger.info("Bot started.")
     bot.infinity_polling()
