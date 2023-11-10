@@ -8,3 +8,5 @@
 2023-11-09 20:25:02.437 | INFO     | converter.router:router:47 - User with ID 583460898 is ready to convert. Redirecting to amount selection.
 2023-11-09 20:26:50.890 | INFO     | converter.router:router:43 - User with ID 583460898 has not chosen a direction. Redirecting to direction selection.
 2023-11-09 20:26:52.368 | INFO     | converter.router:router:47 - User with ID 583460898 is ready to convert. Redirecting to amount selection.
+2023-11-10 14:51:46.335 | INFO     | converter.router:router:43 - User with ID 583460898 has not chosen a direction. Redirecting to direction selection.
+2023-11-10 14:51:48.042 | INFO     | converter.router:router:47 - User with ID 583460898 is ready to convert. Redirecting to amount selection.

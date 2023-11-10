@@ -1,6 +1,6 @@
 # Standard Library
 import logging
-
+from loguru import logger
 # Third Party Stuff
 from sqlalchemy import select
 from sqlalchemy.orm import Session
