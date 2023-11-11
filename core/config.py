@@ -7,7 +7,7 @@ drivername = "postgresql"
 username = "postgres"
 password = "postgrespw"
 host = "localhost"
-port = 32770
+port = 32769
 database = "telegrambotapiconverter"
 
 # Создаем объект URL
