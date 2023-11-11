@@ -1,7 +1,7 @@
 # Third Party Stuff
 from sqlalchemy.engine import URL
 
-TOKEN = "6862002582:AAHKSgSgceR8LXEMV3cMU7G6cQ-IbOOpp9U"
+TOKEN = "5991863328:AAHf0Fyz3rtMR8851RF3xfyqdzIYNNDbVnM"
 # Вручную задаем данные из вашей ссылки
 drivername = "postgresql"
 username = "postgres"
